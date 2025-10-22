@@ -4,6 +4,7 @@
   "description": "API unificada do SofaScore para IA de apostas",
   "main": "server.js",
   "scripts": {
+    "build": "npx playwright install --with-deps",
     "start": "node server.js"
   },
   "keywords": [],
