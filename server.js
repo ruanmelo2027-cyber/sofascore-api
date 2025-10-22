@@ -2,10 +2,10 @@ const express = require("express");
 const { chromium } = require("playwright");
 
 const app = express();
-const PORT = 4000;
+const PORT = process.env.PORT || 4000; // Render define automaticamente a porta
 let browser, context;
 
-// Inicia o navegador
+// 🔹 Inicia o navegador Playwright (só uma vez)
 async function initBrowser() {
   if (browser) return;
   browser = await chromium.launch({ headless: true });
@@ -13,7 +13,7 @@ async function initBrowser() {
   console.log("✅ Navegador Playwright iniciado");
 }
 
-// Faz uma requisição para a API SofaScore
+// 🔹 Função para buscar dados da API SofaScore
 async function fetchFromSofa(path) {
   await initBrowser();
   const url = `https://api.sofascore.com/api/v1${path}`;
@@ -34,10 +34,14 @@ async function fetchFromSofa(path) {
   return await response.json();
 }
 
-// Rota principal - junta tudo
+// 🔹 Rota inicial — aparece quando você acessa o domínio base
+app.get("/", (req, res) => {
+  res.send("🚀 API SofaScore está online!");
+});
+
+// 🔹 Rota principal — retorna partidas e estatísticas
 app.get("/matches", async (req, res) => {
   try {
-    // Pega ao vivo e próximos
     const [live, upcoming] = await Promise.all([
       fetchFromSofa("/sport/football/events/live").catch(() => ({ events: [] })),
       fetchFromSofa("/sport/football/events/scheduled").catch(() => ({ events: [] })),
@@ -62,19 +66,16 @@ app.get("/matches", async (req, res) => {
           incidents: null,
         };
 
-        // Estatísticas detalhadas
         try {
           const stats = await fetchFromSofa(`/event/${event.id}/statistics`);
           match.statistics = stats.statistics || null;
         } catch {}
 
-        // Probabilidades e odds
         try {
           const probs = await fetchFromSofa(`/event/${event.id}/probabilities`);
           match.probabilities = probs.probabilities || null;
         } catch {}
 
-        // Incidentes (gols, cartões, etc.)
         try {
           const inc = await fetchFromSofa(`/event/${event.id}/incidents`);
           match.incidents = inc.incidents || null;
@@ -94,7 +95,7 @@ app.get("/matches", async (req, res) => {
   }
 });
 
-// Inicia servidor
+// 🔹 Inicia o servidor
 app.listen(PORT, async () => {
   console.log(`🚀 Servidor rodando em http://localhost:${PORT}`);
   await initBrowser();

@@ -11,7 +11,7 @@ RUN apt-get update && apt-get install -y \
 # Define o diretório de trabalho
 WORKDIR /app
 
-# Copia os arquivos de dependência primeiro (melhor para cache)
+# Copia os arquivos de dependência primeiro (melhor cache)
 COPY package*.json ./
 
 # Instala dependências Node
@@ -24,9 +24,9 @@ RUN npx playwright install --with-deps
 COPY . .
 
 # Define variável de ambiente (Render define $PORT automaticamente)
-ENV PORT=4000
+ENV PORT=$PORT
 
-# Expõe a porta (Render ignora, mas é boa prática)
+# Expõe a porta (boa prática)
 EXPOSE 4000
 
 # Comando padrão
