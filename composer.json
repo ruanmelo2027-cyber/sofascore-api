@@ -1,0 +1,12 @@
+{
+  "name": "lance/sofascore-api",
+  "description": "API proxy para dados do SofaScore",
+  "autoload": {
+    "psr-4": {
+      "Lance\\Sofascore\\": "src/Sofascore/"
+    }
+  },
+  "require": {
+    "guzzlehttp/guzzle": "^7.10"
+  }
+}
