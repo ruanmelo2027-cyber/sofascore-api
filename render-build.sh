@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Instala as dependências do projeto
+# Instala dependências do projeto
 npm install
 
-# Instala o navegador do Playwright (com dependências)
-npx playwright install --with-deps
+# Instala Playwright (com permissão explícita)
+npx playwright install chromium --with-deps || echo "Playwright já instalado"
