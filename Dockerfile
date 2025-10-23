@@ -1,33 +1,31 @@
-# Etapa 1: imagem base oficial do Node.js
-FROM node:22-slim
+# Usa Node 18 (versão mais estável para Playwright)
+FROM node:18-slim
 
-# Instala dependências do sistema necessárias para o Playwright
+# Instala dependências do sistema necessárias para Playwright
 RUN apt-get update && apt-get install -y \
     wget gnupg ca-certificates fonts-liberation libasound2 libatk-bridge2.0-0 \
     libnss3 libxcomposite1 libxdamage1 libxrandr2 libgbm1 libgtk-3-0 libpango-1.0-0 \
     libxkbcommon0 libxshmfence1 libx11-xcb1 libxcb-dri3-0 libdrm2 \
     && rm -rf /var/lib/apt/lists/*
 
-# Define o diretório de trabalho
+# Define diretório de trabalho
 WORKDIR /app
 
-# Copia os arquivos de dependência primeiro (melhor cache)
+# Copia arquivos de dependência
 COPY package*.json ./
 
 # Instala dependências Node
 RUN npm install
 
-# Instala navegadores do Playwright
+# Instala Playwright e os navegadores
 RUN npx playwright install --with-deps
 
 # Copia o restante do projeto
 COPY . .
 
-# Define variável de ambiente (Render define $PORT automaticamente)
+# Render define automaticamente a porta
 ENV PORT=$PORT
+EXPOSE $PORT
 
-# Expõe a porta (boa prática)
-EXPOSE 4000
-
-# Comando padrão
+# Comando de inicialização
 CMD ["npm", "start"]
