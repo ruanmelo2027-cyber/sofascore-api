@@ -95,8 +95,8 @@ app.get("/matches", async (req, res) => {
   }
 });
 
-// 🔹 Inicia o servidor
-app.listen(PORT, async () => {
-  console.log(`🚀 Servidor rodando em http://localhost:${PORT}`);
+// 🔹 Inicia o servidor — ajuste ESSENCIAL para Render
+app.listen(PORT, "0.0.0.0", async () => {
   await initBrowser();
+  console.log(`🚀 Servidor rodando na porta ${PORT}`);
 });
