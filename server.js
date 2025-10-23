@@ -1,50 +1,43 @@
 const express = require("express");
-const { chromium } = require("playwright");
+const axios = require("axios");
+const cors = require("cors");
 
 const app = express();
-const PORT = process.env.PORT || 4000; // Render define automaticamente a porta
-let browser, context;
+const PORT = process.env.PORT || 4000;
 
-// 🔹 Inicia o navegador Playwright (só uma vez)
-async function initBrowser() {
-  if (browser) return;
-  browser = await chromium.launch({ headless: true });
-  context = await browser.newContext();
-  console.log("✅ Navegador Playwright iniciado");
-}
+// 🔹 Middleware
+app.use(cors());
 
-// 🔹 Função para buscar dados da API SofaScore
+// 🔹 Função para buscar dados diretamente da API SofaScore
 async function fetchFromSofa(path) {
-  await initBrowser();
   const url = `https://api.sofascore.com/api/v1${path}`;
-
-  const response = await context.request.get(url, {
-    headers: {
-      "Accept": "application/json",
-      "User-Agent": "Mozilla/5.0",
-      "Referer": "https://www.sofascore.com",
-      "Origin": "https://www.sofascore.com",
-    },
-  });
-
-  if (!response.ok()) {
-    throw new Error(`Erro ${response.status()} ao acessar ${url}`);
+  try {
+    const response = await axios.get(url, {
+      headers: {
+        "Accept": "application/json",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
+        "Referer": "https://www.sofascore.com/",
+        "Origin": "https://www.sofascore.com/",
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error(`❌ Erro ao buscar ${url}:`, error.response?.status || error.message);
+    return { events: [] };
   }
-
-  return await response.json();
 }
 
-// 🔹 Rota inicial — aparece quando você acessa o domínio base
+// 🔹 Página inicial
 app.get("/", (req, res) => {
-  res.send("🚀 API SofaScore está online!");
+  res.send("🚀 API SofaScore (Axios) está online e funcional no Render!");
 });
 
-// 🔹 Rota principal — retorna partidas e estatísticas
+// 🔹 Rota principal — partidas + estatísticas
 app.get("/matches", async (req, res) => {
   try {
     const [live, upcoming] = await Promise.all([
-      fetchFromSofa("/sport/football/events/live").catch(() => ({ events: [] })),
-      fetchFromSofa("/sport/football/events/scheduled").catch(() => ({ events: [] })),
+      fetchFromSofa("/sport/football/events/live"),
+      fetchFromSofa("/sport/football/events/scheduled"),
     ]);
 
     const allMatches = [...(live.events || []), ...(upcoming.events || [])];
@@ -90,13 +83,12 @@ app.get("/matches", async (req, res) => {
       lastUpdate: new Date().toISOString(),
       matches: detailedMatches,
     });
-  } catch (e) {
-    res.status(500).json({ erro: e.message });
+  } catch (error) {
+    res.status(500).json({ erro: error.message });
   }
 });
 
-// 🔹 Inicia o servidor — ajuste ESSENCIAL para Render
-app.listen(PORT, "0.0.0.0", async () => {
-  await initBrowser();
+// 🔹 Inicia o servidor
+app.listen(PORT, "0.0.0.0", () => {
   console.log(`🚀 Servidor rodando na porta ${PORT}`);
 });
